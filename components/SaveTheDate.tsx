@@ -11,6 +11,51 @@ export default function SaveTheDate() {
   const coupleNames = 'Gayathri & Dumindu'
   const fullVenueName = `${venueHall}, ${venueHotel}`
 
+  // Detect if device is mobile
+  const isMobile = () => {
+    if (typeof window === 'undefined') return false
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  }
+
+  // Format date for Google Calendar URL (YYYYMMDDTHHmmssZ in UTC)
+  const formatDateForGoogleCalendar = (date: Date): string => {
+    // Get local time components
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+    
+    // Convert to UTC offset format (no Z, just the time)
+    // Google Calendar will interpret this in the user's timezone
+    return `${year}${month}${day}T${hours}${minutes}${seconds}`
+  }
+
+  const handleSaveToCalendar = () => {
+    if (isMobile()) {
+      // Use Google Calendar URL for mobile devices (works on both iOS and Android)
+      const startDateStr = formatDateForGoogleCalendar(weddingDate)
+      const endDateStr = formatDateForGoogleCalendar(receptionEndTime)
+      
+      const title = encodeURIComponent(`${coupleNames} Wedding`)
+      const details = encodeURIComponent(
+        `Join us for our special day at ${fullVenueName}`
+      )
+      const location = encodeURIComponent(`${fullVenueName}, ${venueAddress}`)
+      
+      const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDateStr}/${endDateStr}&details=${details}&location=${location}`
+      
+      // Try to open native calendar app
+      window.open(googleCalendarUrl, '_blank')
+    } else {
+      // Desktop: Download .ics file
+      handleDownloadICS()
+    }
+  }
+
   const handleDownloadICS = () => {
     const icsContent = generateICS({
       title: `${coupleNames} Wedding`,
@@ -43,7 +88,7 @@ export default function SaveTheDate() {
           Please save the date to your calendar.
         </p>
         <button
-          onClick={handleDownloadICS}
+          onClick={handleSaveToCalendar}
           className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 md:px-10 py-4 sm:py-4.5 md:py-5 bg-champagne-gold text-white rounded-xl sm:rounded-2xl shadow-romantic hover:bg-deep-gold transition-romantic hover:shadow-elegant transform hover:-translate-y-1 sm:hover:-translate-y-1.5 hover:scale-[1.02] active:scale-[0.98] touch-manipulation min-h-[48px]"
         >
           <svg
