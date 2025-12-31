@@ -19,44 +19,7 @@ export default function SaveTheDate() {
     )
   }
 
-  // Format date for Google Calendar URL (YYYYMMDDTHHmmssZ in UTC)
-  const formatDateForGoogleCalendar = (date: Date): string => {
-    // Get local time components
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const seconds = String(date.getSeconds()).padStart(2, '0')
-    
-    // Convert to UTC offset format (no Z, just the time)
-    // Google Calendar will interpret this in the user's timezone
-    return `${year}${month}${day}T${hours}${minutes}${seconds}`
-  }
-
   const handleSaveToCalendar = () => {
-    if (isMobile()) {
-      // Use Google Calendar URL for mobile devices (works on both iOS and Android)
-      const startDateStr = formatDateForGoogleCalendar(weddingDate)
-      const endDateStr = formatDateForGoogleCalendar(receptionEndTime)
-      
-      const title = encodeURIComponent(`${coupleNames} Wedding`)
-      const details = encodeURIComponent(
-        `Join us for our special day at ${fullVenueName}`
-      )
-      const location = encodeURIComponent(`${fullVenueName}, ${venueAddress}`)
-      
-      const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDateStr}/${endDateStr}&details=${details}&location=${location}`
-      
-      // Try to open native calendar app
-      window.open(googleCalendarUrl, '_blank')
-    } else {
-      // Desktop: Download .ics file
-      handleDownloadICS()
-    }
-  }
-
-  const handleDownloadICS = () => {
     const icsContent = generateICS({
       title: `${coupleNames} Wedding`,
       description: `Join us for our special day at ${fullVenueName}`,
@@ -65,13 +28,24 @@ export default function SaveTheDate() {
       endDate: receptionEndTime,
     })
 
+    // Create blob with ICS content
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    
+    // Create a temporary link
     const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = 'wedding-invitation.ics'
+    link.href = url
+    link.setAttribute('download', 'wedding-invitation.ics')
+    
+    // Append to body, click, then remove
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    
+    // Clean up the blob URL after a short delay
+    setTimeout(() => {
+      URL.revokeObjectURL(url)
+    }, 100)
   }
 
   return (
