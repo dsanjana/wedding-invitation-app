@@ -26,50 +26,31 @@ export default function SaveTheDate() {
   }
 
   const handleSaveToCalendar = () => {
-    const icsContent = generateICS({
-      title: `${coupleNames} Wedding`,
-      description: `Join us for our special day at ${fullVenueName}`,
-      location: `${fullVenueName}, ${venueAddress}`,
-      startDate: weddingDate,
-      endDate: receptionEndTime,
-    })
-
-    // Create blob with ICS content
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-
     if (isIOS()) {
-      // For iOS: Open blob URL in new window to trigger calendar app
-      // iOS Safari will recognize the calendar MIME type and open Calendar app
-      const newWindow = window.open(url, '_blank')
-      
-      // If popup was blocked, fall back to link click
-      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-        const link = document.createElement('a')
-        link.href = url
-        link.target = '_blank'
-        link.style.display = 'none'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      }
-      
-      // Clean up after longer delay for iOS
-      setTimeout(() => {
-        URL.revokeObjectURL(url)
-      }, 2000)
+      // For iOS: Use API route to serve file with proper headers
+      // This allows iOS to recognize it as a calendar file and open Calendar app
+      window.location.href = '/api/calendar'
     } else {
-      // For Android and Desktop: Use download attribute
+      // For Android and Desktop: Generate and download .ics file
+      const icsContent = generateICS({
+        title: `${coupleNames} Wedding`,
+        description: `Join us for our special day at ${fullVenueName}`,
+        location: `${fullVenueName}, ${venueAddress}`,
+        startDate: weddingDate,
+        endDate: receptionEndTime,
+      })
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      
       const link = document.createElement('a')
       link.href = url
       link.setAttribute('download', 'wedding-invitation.ics')
       
-      // Append to body, click, then remove
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       
-      // Clean up the blob URL after a short delay
       setTimeout(() => {
         URL.revokeObjectURL(url)
       }, 100)
