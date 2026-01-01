@@ -11,6 +11,12 @@ export default function SaveTheDate() {
   const coupleNames = 'Gayathri & Dumindu'
   const fullVenueName = `${venueHall}, ${venueHotel}`
 
+  // Detect if device is iOS
+  const isIOS = () => {
+    if (typeof window === 'undefined') return false
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  }
+
   // Detect if device is mobile
   const isMobile = () => {
     if (typeof window === 'undefined') return false
@@ -31,21 +37,43 @@ export default function SaveTheDate() {
     // Create blob with ICS content
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
     const url = URL.createObjectURL(blob)
-    
-    // Create a temporary link
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'wedding-invitation.ics')
-    
-    // Append to body, click, then remove
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    
-    // Clean up the blob URL after a short delay
-    setTimeout(() => {
-      URL.revokeObjectURL(url)
-    }, 100)
+
+    if (isIOS()) {
+      // For iOS: Open blob URL in new window to trigger calendar app
+      // iOS Safari will recognize the calendar MIME type and open Calendar app
+      const newWindow = window.open(url, '_blank')
+      
+      // If popup was blocked, fall back to link click
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        const link = document.createElement('a')
+        link.href = url
+        link.target = '_blank'
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+      
+      // Clean up after longer delay for iOS
+      setTimeout(() => {
+        URL.revokeObjectURL(url)
+      }, 2000)
+    } else {
+      // For Android and Desktop: Use download attribute
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'wedding-invitation.ics')
+      
+      // Append to body, click, then remove
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      // Clean up the blob URL after a short delay
+      setTimeout(() => {
+        URL.revokeObjectURL(url)
+      }, 100)
+    }
   }
 
   return (
