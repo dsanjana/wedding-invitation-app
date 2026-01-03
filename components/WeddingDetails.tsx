@@ -47,7 +47,7 @@ export default function WeddingDetails() {
 
         {/* Wedding Date */}
         <div className="mb-12 sm:mb-14 md:mb-16 lg:mb-20">
-          <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-stone-grey mb-4 sm:mb-5 md:mb-6 font-light tracking-wide px-2">
+          <p className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-charcoal-black mb-4 sm:mb-5 md:mb-6 font-medium tracking-tight px-2">
             {weddingData.date}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 md:gap-6 lg:gap-10 text-base sm:text-lg md:text-xl lg:text-2xl text-charcoal-black px-2">
@@ -68,11 +68,8 @@ export default function WeddingDetails() {
           <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-charcoal-black mb-2 tracking-tight">
             {weddingData.venue.hotel}
           </h2>
-          <p className="font-heading text-xl sm:text-2xl md:text-3xl lg:text-4xl text-charcoal-black mb-3 sm:mb-4 tracking-tight">
+          <p className="font-heading text-xl sm:text-2xl md:text-3xl lg:text-4xl text-charcoal-black tracking-tight">
             {weddingData.venue.hall}
-          </p>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-stone-grey font-light leading-relaxed">
-            {weddingData.venue.address}
           </p>
         </div>
       </div>

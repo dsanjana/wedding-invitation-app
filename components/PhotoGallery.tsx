@@ -1,44 +1,46 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 
-// Placeholder images - replace with actual wedding photos
+// Wedding photos
 const galleryImages = [
   {
     id: 1,
-    src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80',
-    alt: 'Couple photo 1',
+    src: '/LMX53473.JPG',
+    alt: 'Gayathri & Dumindu - Dancing under the archway',
   },
   {
     id: 2,
-    src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80',
-    alt: 'Couple photo 2',
+    src: '/LMX53659.JPG',
+    alt: 'Gayathri & Dumindu - Beach embrace',
   },
   {
     id: 3,
-    src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80',
-    alt: 'Couple photo 3',
+    src: '/LMX53275.JPG',
+    alt: 'Gayathri & Dumindu - Walking together',
   },
   {
     id: 4,
-    src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80',
-    alt: 'Couple photo 4',
+    src: '/LMX53678.JPG',
+    alt: 'Gayathri & Dumindu - Beach walk',
   },
   {
     id: 5,
-    src: 'https://images.unsplash.com/photo-1469371670807-013ccf25f16a?w=800&q=80',
-    alt: 'Couple photo 5',
+    src: '/LMX53312.JPG',
+    alt: 'Gayathri & Dumindu - At the fence',
   },
   {
     id: 6,
-    src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80',
-    alt: 'Couple photo 6',
+    src: '/LMX53480.JPG',
+    alt: 'Gayathri & Dumindu - Walking hand in hand',
   },
 ]
 
 export default function PhotoGallery() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null)
+  const touchStartX = useRef<number | null>(null)
+  const touchEndX = useRef<number | null>(null)
 
   const openLightbox = (id: number) => {
     setSelectedImage(id)
@@ -63,6 +65,62 @@ export default function PhotoGallery() {
     }
 
     setSelectedImage(galleryImages[newIndex].id)
+  }
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (selectedImage === null) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImage === null) return
+
+      const currentIndex = galleryImages.findIndex(
+        (img) => img.id === selectedImage
+      )
+
+      if (e.key === 'ArrowLeft') {
+        const newIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length
+        setSelectedImage(galleryImages[newIndex].id)
+      } else if (e.key === 'ArrowRight') {
+        const newIndex = (currentIndex + 1) % galleryImages.length
+        setSelectedImage(galleryImages[newIndex].id)
+      } else if (e.key === 'Escape') {
+        setSelectedImage(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedImage])
+
+  // Touch handlers for swipe navigation
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current || selectedImage === null) return
+
+    const distance = touchStartX.current - touchEndX.current
+    const minSwipeDistance = 50
+
+    if (distance > minSwipeDistance) {
+      // Swipe left - next image
+      navigateImage('next')
+    } else if (distance < -minSwipeDistance) {
+      // Swipe right - previous image
+      navigateImage('prev')
+    }
+
+    touchStartX.current = null
+    touchEndX.current = null
   }
 
   return (
@@ -92,7 +150,9 @@ export default function PhotoGallery() {
                   src={image.src}
                   alt={image.alt}
                   fill
-                  className="object-cover group-hover:scale-110 transition-romantic"
+                  className={`object-cover group-hover:scale-110 transition-romantic ${
+                    image.id === 2 ? 'object-top' : 'object-center'
+                  }`}
                   sizes="(max-width: 768px) 50vw, 33vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-charcoal-black/0 via-charcoal-black/0 to-charcoal-black/0 group-hover:from-charcoal-black/10 group-hover:via-charcoal-black/5 group-hover:to-charcoal-black/0 transition-romantic"></div>
@@ -111,7 +171,7 @@ export default function PhotoGallery() {
         >
           <button
             onClick={closeLightbox}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-ivory-white hover:text-champagne-gold transition-romantic z-10 p-2 sm:p-2.5 rounded-full hover:bg-deep-espresso/50 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-charcoal-black bg-ivory-white/90 hover:bg-ivory-white transition-romantic z-10 p-2 sm:p-2.5 rounded-full shadow-soft hover:shadow-elegant touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Close lightbox"
           >
             <svg
@@ -119,7 +179,7 @@ export default function PhotoGallery() {
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="1.5"
+              strokeWidth="2"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
@@ -171,19 +231,48 @@ export default function PhotoGallery() {
 
           <div
             className="relative max-w-6xl w-full h-full max-h-[92vh]"
-            onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            <Image
-              src={
-                galleryImages.find((img) => img.id === selectedImage)?.src || ''
-              }
-              alt={
-                galleryImages.find((img) => img.id === selectedImage)?.alt || ''
-              }
-              fill
-              className="object-contain rounded-xl"
-              sizes="90vw"
-            />
+            {/* Left clickable area for previous */}
+            <div
+              className="absolute left-0 top-0 bottom-0 w-1/3 cursor-pointer z-20"
+              onClick={(e) => {
+                e.stopPropagation()
+                navigateImage('prev')
+              }}
+              aria-label="Previous image"
+            ></div>
+            
+            {/* Right clickable area for next */}
+            <div
+              className="absolute right-0 top-0 bottom-0 w-1/3 cursor-pointer z-20"
+              onClick={(e) => {
+                e.stopPropagation()
+                navigateImage('next')
+              }}
+              aria-label="Next image"
+            ></div>
+
+            {/* Image container */}
+            <div
+              className="relative w-full h-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={
+                  galleryImages.find((img) => img.id === selectedImage)?.src || ''
+                }
+                alt={
+                  galleryImages.find((img) => img.id === selectedImage)?.alt || ''
+                }
+                fill
+                className="object-contain rounded-xl select-none pointer-events-none"
+                sizes="90vw"
+                draggable={false}
+              />
+            </div>
           </div>
         </div>
       )}
